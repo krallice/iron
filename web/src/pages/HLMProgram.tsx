@@ -14,9 +14,9 @@ import { Textarea } from '@/components/ui/textarea';
 const HLMProgram = () => {
   const [inputs, setInputs] = useState<HlmInputs>({
     squatMax: 120,
-    primaryPressMax: 185,
-    secondaryPressMax: 115,
-    deadliftMax: 275,
+    primaryPressMax: 60,
+    secondaryPressMax: 40,
+    deadliftMax: 160,
     hlmType: 'alternate',
     heavySquatName: "Squat",
     primaryPressName: "OHP",
@@ -127,7 +127,7 @@ const HLMProgram = () => {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="squatMax">Squat 1RM (lb)</Label>
+                <Label htmlFor="squatMax">Squat (kg)</Label>
                 <Input
                   id="squatMax"
                   name="squatMax"
@@ -140,7 +140,7 @@ const HLMProgram = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="primaryPressMax">
-                  {inputs.hlmType === 'standard' ? 'Bench Press' : 'Primary Press'} 1RM (lb)
+                  {inputs.hlmType === 'standard' ? 'Bench Press' : 'Primary Press'} (kg)
                 </Label>
                 <Input
                   id="primaryPressMax"
@@ -153,7 +153,7 @@ const HLMProgram = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="deadliftMax">Deadlift 1RM (lb)</Label>
+                <Label htmlFor="deadliftMax">Deadlift (kg)</Label>
                 <Input
                   id="deadliftMax"
                   name="deadliftMax"
@@ -166,7 +166,7 @@ const HLMProgram = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="secondaryPressMax">
-                  {inputs.hlmType === 'standard' ? 'Overhead Press' : 'Secondary Press'} 1RM (lb)
+                  {inputs.hlmType === 'standard' ? 'Overhead Press' : 'Secondary Press'} (kg)
                 </Label>
                 <Input
                   id="secondaryPressMax"
@@ -230,7 +230,8 @@ const HLMProgram = () => {
                     name="headerText"
                     value={inputs.headerText}
                     onChange={handleInputChange}
-                    placeholder="Enter accessories (one per line), e.g.:&#10;2x6 Double Rope Chins&#10;2x10 Chins"
+                    placeholder={`2x6 Double Rope Chins
+2x10 Chins`}
                     className="min-h-[100px] font-mono"
                   />
                 </div>

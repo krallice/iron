@@ -125,6 +125,7 @@ class HLMStandardGenerator:
         output = {
             "template_name": self.TEMPLATE_NAME,
             "weights": {exercise: weight for exercise, weight in self.weights.items()},
+            "reductions": self.reductions,
             "schedule": self.schedule
         }
         return output
