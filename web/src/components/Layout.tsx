@@ -16,7 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="h-10 w-10 rounded-full animated-gradient flex items-center justify-center">
               <Dumbbell className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold">Iron Forge</h1>
+            <h1 className="text-xl font-bold">Iron</h1>
           </Link>
           <nav>
             <ul className="flex space-x-6">
@@ -35,6 +35,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   5/3/1
                 </Link>
               </li>
+              <li>
+                <Link to="/1rm" className="hover:text-primary transition-colors">
+                  1RM
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>
@@ -44,7 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
       <footer className="py-6 border-t border-border/50">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Iron Forge Workout Calculator. All rights reserved.
+          &copy; {new Date().getFullYear()} Iron Noclab. All rights reserved.
         </div>
       </footer>
     </div>

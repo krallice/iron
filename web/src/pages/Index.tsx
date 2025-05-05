@@ -8,9 +8,12 @@ const Index = () => {
   return (
     <Layout>
       <div className="flex flex-col items-center mb-12">
-        <h1 className="text-4xl font-bold mb-3">Iron Forge Workout Calculator</h1>
+        <h1 className="text-4xl font-bold mb-3">Iron Calculator</h1>
         <p className="text-muted-foreground text-lg max-w-2xl text-center">
-          Generate structured workout programs based on proven training systems. Calculate your workouts and export them to a text file.
+          Generate structured workout programs based on proven training systems.
+        </p>
+        <p className="text-muted-foreground text-lg max-w-2xl text-center">
+          Calculate your workouts and export them to a text file.
         </p>
       </div>
       
@@ -37,7 +40,7 @@ const Index = () => {
         />
       </div>
       
-      <div className="mt-16 bg-secondary/30 rounded-lg p-6 max-w-4xl mx-auto border border-border/50">
+      {/* <div className="mt-16 bg-secondary/30 rounded-lg p-6 max-w-4xl mx-auto border border-border/50">
         <h2 className="text-xl font-semibold mb-4">How to use the Iron Forge calculator</h2>
         <ol className="list-decimal list-inside space-y-3 text-muted-foreground">
           <li>Select a workout program that fits your goals</li>
@@ -46,7 +49,7 @@ const Index = () => {
           <li>Generate your personalized workout plan</li>
           <li>Copy or download your program as a text file</li>
         </ol>
-      </div>
+      </div> */}
     </Layout>
   );
 };

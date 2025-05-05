@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,18 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
 import { calculate531, FiveThreeOneInputs } from '@/services/workoutService';
 import WorkoutDisplay from '@/components/WorkoutDisplay';
 import { toast } from '@/components/ui/sonner';
 
 const FiveThreeOneProgram = () => {
   const [inputs, setInputs] = useState<FiveThreeOneInputs>({
-    squatMax: 225,
-    benchMax: 185,
-    deadliftMax: 275,
-    pressMax: 115,
+    squatMax: 120,
+    benchMax: 100,
+    deadliftMax: 180,
+    pressMax: 60,
     trainingMax: 90,
-    cycles: 2
+    templates: [],
+    fslParams: { sets: 5, reps: 5 },
+    maxType: 'training_max',
+    headerText: ''
   });
   
   const [workoutProgram, setWorkoutProgram] = useState<string | null>(null);
@@ -35,11 +38,21 @@ const FiveThreeOneProgram = () => {
     setInputs(prev => ({ ...prev, trainingMax: value[0] }));
   };
   
-  const handleCyclesChange = (value: number[]) => {
-    setInputs(prev => ({ ...prev, cycles: value[0] }));
+  const handleTemplateChange = (template: string, checked: boolean) => {
+    setInputs(prev => ({
+      ...prev,
+      templates: checked ? [template] : []
+    }));
+  };
+
+  const handleFSLParamsChange = (param: 'sets' | 'reps', value: number) => {
+    setInputs(prev => ({
+      ...prev,
+      fslParams: { ...prev.fslParams, [param]: value }
+    }));
   };
   
-  const generateWorkout = () => {
+  const generateWorkout = async () => {
     // Form validation
     if (
       inputs.squatMax <= 0 || 
@@ -50,10 +63,24 @@ const FiveThreeOneProgram = () => {
       toast.error("Please enter valid values for all lifts");
       return;
     }
+
+    // Validate FSL params if FSL template is selected
+    if (inputs.templates.includes('fsl')) {
+      const { sets, reps } = inputs.fslParams;
+      if (sets < 3 || sets > 8 || reps < 3 || reps > 5) {
+        toast.error("FSL sets must be 3-8 and reps must be 3-5");
+        return;
+      }
+    }
     
-    const program = calculate531(inputs);
-    setWorkoutProgram(program);
-    toast.success("5/3/1 program generated successfully!");
+    try {
+      const program = await calculate531(inputs);
+      setWorkoutProgram(program);
+      toast.success("5/3/1 program generated successfully!");
+    } catch (error) {
+      toast.error("Failed to generate program");
+      console.error(error);
+    }
   };
   
   return (
@@ -76,7 +103,7 @@ const FiveThreeOneProgram = () => {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="squatMax">Squat 1RM (lb)</Label>
+                <Label htmlFor="squatMax">Squat 1RM (kg)</Label>
                 <Input
                   id="squatMax"
                   name="squatMax"
@@ -88,7 +115,7 @@ const FiveThreeOneProgram = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="benchMax">Bench Press 1RM (lb)</Label>
+                <Label htmlFor="benchMax">Bench Press 1RM (kg)</Label>
                 <Input
                   id="benchMax"
                   name="benchMax"
@@ -100,7 +127,7 @@ const FiveThreeOneProgram = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="deadliftMax">Deadlift 1RM (lb)</Label>
+                <Label htmlFor="deadliftMax">Deadlift 1RM (kg)</Label>
                 <Input
                   id="deadliftMax"
                   name="deadliftMax"
@@ -112,7 +139,7 @@ const FiveThreeOneProgram = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="pressMax">Overhead Press 1RM (lb)</Label>
+                <Label htmlFor="pressMax">Overhead Press 1RM (kg)</Label>
                 <Input
                   id="pressMax"
                   name="pressMax"
@@ -138,16 +165,72 @@ const FiveThreeOneProgram = () => {
                 />
               </div>
               
-              <div>
-                <div className="flex justify-between mb-2">
-                  <Label>Number of Cycles: {inputs.cycles}</Label>
+              <div className="space-y-4">
+                <Label>Templates</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="template-fsl"
+                      checked={inputs.templates.includes('fsl')}
+                      onCheckedChange={(checked) => handleTemplateChange('fsl', checked as boolean)}
+                    />
+                    <Label htmlFor="template-fsl">First Set Last (FSL)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="template-widowmaker"
+                      checked={inputs.templates.includes('widowmaker')}
+                      onCheckedChange={(checked) => handleTemplateChange('widowmaker', checked as boolean)}
+                    />
+                    <Label htmlFor="template-widowmaker">Widowmaker</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="template-pyramid"
+                      checked={inputs.templates.includes('pyramid')}
+                      onCheckedChange={(checked) => handleTemplateChange('pyramid', checked as boolean)}
+                    />
+                    <Label htmlFor="template-pyramid">Pyramid</Label>
+                  </div>
                 </div>
-                <Slider
-                  value={[inputs.cycles]}
-                  min={1}
-                  max={4}
-                  step={1}
-                  onValueChange={handleCyclesChange}
+              </div>
+
+              {inputs.templates.includes('fsl') && (
+                <div className="space-y-4">
+                  <Label>FSL Parameters</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Sets (3-8)</Label>
+                      <Input
+                        type="number"
+                        min={3}
+                        max={8}
+                        value={inputs.fslParams.sets}
+                        onChange={(e) => handleFSLParamsChange('sets', parseInt(e.target.value))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Reps (3-5)</Label>
+                      <Input
+                        type="number"
+                        min={3}
+                        max={5}
+                        value={inputs.fslParams.reps}
+                        onChange={(e) => handleFSLParamsChange('reps', parseInt(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="headerText">Additional Notes</Label>
+                <Input
+                  id="headerText"
+                  name="headerText"
+                  value={inputs.headerText}
+                  onChange={(e) => setInputs(prev => ({ ...prev, headerText: e.target.value }))}
+                  placeholder="Enter any additional notes or instructions"
                 />
               </div>
               

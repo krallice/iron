@@ -30,7 +30,13 @@ export interface FiveThreeOneInputs {
   deadliftMax: number;
   pressMax: number;
   trainingMax: number; // percentage of 1RM
-  cycles: number;
+  templates: string[];
+  fslParams: {
+    sets: number;
+    reps: number;
+  };
+  maxType: string;
+  headerText: string;
 }
 
 // Calculate HLM Program
@@ -39,7 +45,7 @@ export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
   
   try {
     if (hlmType === 'standard') {
-      const response = await fetch('http://localhost:9000/hlm/standard', {
+      const response = await fetch('http://192.168.1.129:9000/api/v1/programs/hlm/standard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +66,7 @@ export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
       const data = await response.json();
       return formatHLMResponse(data, inputs);
     } else {
-      const response = await fetch('http://localhost:9000/hlm/alternate', {
+      const response = await fetch('http://192.168.1.129:9000/api/v1/programs/hlm/alternate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,109 +148,83 @@ const formatHLMResponse = (data: any, inputs: HlmInputs): string => {
 };
 
 // Calculate 5/3/1 Program
-export const calculate531 = (inputs: FiveThreeOneInputs): string => {
-  const { squatMax, benchMax, deadliftMax, pressMax, trainingMax, cycles } = inputs;
-  
-  // Calculate training maxes
-  const squatTM = Math.round(squatMax * (trainingMax / 100));
-  const benchTM = Math.round(benchMax * (trainingMax / 100));
-  const deadliftTM = Math.round(deadliftMax * (trainingMax / 100));
-  const pressTM = Math.round(pressMax * (trainingMax / 100));
-  
-  let program = `JIM WENDLER'S 5/3/1 PROGRAM\n`;
-  program += `Based on: Squat ${squatMax}lb (TM: ${squatTM}lb), Bench ${benchMax}lb (TM: ${benchTM}lb), Deadlift ${deadliftMax}lb (TM: ${deadliftTM}lb), Press ${pressMax}lb (TM: ${pressTM}lb)\n\n`;
-  
-  for (let cycle = 1; cycle <= cycles; cycle++) {
-    program += `CYCLE ${cycle}\n\n`;
+export const calculate531 = async (inputs: FiveThreeOneInputs): Promise<string> => {
+  try {
+    const response = await fetch('http://192.168.1.129:9000/api/v1/programs/wendler531', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        squat: inputs.squatMax,
+        bench: inputs.benchMax,
+        deadlift: inputs.deadliftMax,
+        press: inputs.pressMax,
+        max_type: 'onerm',
+        tm_percentage: inputs.trainingMax,
+        templates: inputs.templates,
+        fsl_params: inputs.fslParams,
+        header_text: inputs.headerText
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate 5/3/1 program');
+    }
+
+    const data = await response.json();
     
-    // Week 1: 3×5 (65%, 75%, 85%)
-    program += `WEEK 1 (5 REPS)\n`;
+    // Format the program output
+    let program = `Wendler 5/3/1: ${data.templates.join(', ') || 'default'}\n\n`;
     
-    program += `DAY 1 - SQUAT\n`;
-    program += `Squat: 5× @ ${Math.round(squatTM * 0.65)}lb, 5× @ ${Math.round(squatTM * 0.75)}lb, 5+ @ ${Math.round(squatTM * 0.85)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(squatTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
+    // Add accessory pairings
+    program += "Accessory Pairings:\n";
+    for (const [lift, accessory] of Object.entries(data.accessory_pairings)) {
+      program += `  ${lift}: ${accessory}\n`;
+    }
+    program += "\n";
+
+    // Add training maxes
+    program += "Training Maxes:\n";
+    for (const [lift, max] of Object.entries(data.training_maxes)) {
+      program += `  ${lift.charAt(0).toUpperCase() + lift.slice(1)}: ${(max as number).toFixed(2)} kgs\n`;
+    }
+    program += "\n";
     
-    program += `DAY 2 - BENCH\n`;
-    program += `Bench: 5× @ ${Math.round(benchTM * 0.65)}lb, 5× @ ${Math.round(benchTM * 0.75)}lb, 5+ @ ${Math.round(benchTM * 0.85)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(benchTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
+    // Add weekly program
+    for (const week of data.program) {
+      program += `${week.name}:\n`;
+      
+      for (const lift of week.lifts) {
+        program += `  ${lift.name}:\n`;
+        
+        // Main sets
+        for (const set of lift.sets) {
+          program += `    Set ${set.set_number}: ${set.reps} reps @ ${(set.weight as number).toFixed(1)} kg (${set.percentage}%)\n`;
+        }
+        
+        // FSL sets if present
+        if (lift.fsl) {
+          program += `    FSL: ${lift.fsl.sets} x ${lift.fsl.reps} @ ${(lift.fsl.weight as number).toFixed(1)} kg\n`;
+        }
+        
+        // Widowmaker if present
+        if (lift.widowmaker) {
+          program += `    Widowmaker: 1×20 @ ${(lift.widowmaker.weight as number).toFixed(1)} kg\n`;
+        }
+        
+        // Pyramid if present
+        if (lift.pyramid) {
+          program += `    Pyramid: ${lift.pyramid[0].reps} @ ${(lift.pyramid[0].weight as number).toFixed(1)} kg, ${lift.pyramid[1].reps} @ ${(lift.pyramid[1].weight as number).toFixed(1)} kg\n`;
+        }
+        
+        program += "\n";
+      }
+    }
     
-    program += `DAY 3 - DEADLIFT\n`;
-    program += `Deadlift: 5× @ ${Math.round(deadliftTM * 0.65)}lb, 5× @ ${Math.round(deadliftTM * 0.75)}lb, 5+ @ ${Math.round(deadliftTM * 0.85)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(deadliftTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 4 - PRESS\n`;
-    program += `Press: 5× @ ${Math.round(pressTM * 0.65)}lb, 5× @ ${Math.round(pressTM * 0.75)}lb, 5+ @ ${Math.round(pressTM * 0.85)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(pressTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    // Week 2: 3×3 (70%, 80%, 90%)
-    program += `WEEK 2 (3 REPS)\n`;
-    
-    program += `DAY 1 - SQUAT\n`;
-    program += `Squat: 3× @ ${Math.round(squatTM * 0.70)}lb, 3× @ ${Math.round(squatTM * 0.80)}lb, 3+ @ ${Math.round(squatTM * 0.90)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(squatTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 2 - BENCH\n`;
-    program += `Bench: 3× @ ${Math.round(benchTM * 0.70)}lb, 3× @ ${Math.round(benchTM * 0.80)}lb, 3+ @ ${Math.round(benchTM * 0.90)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(benchTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 3 - DEADLIFT\n`;
-    program += `Deadlift: 3× @ ${Math.round(deadliftTM * 0.70)}lb, 3× @ ${Math.round(deadliftTM * 0.80)}lb, 3+ @ ${Math.round(deadliftTM * 0.90)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(deadliftTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 4 - PRESS\n`;
-    program += `Press: 3× @ ${Math.round(pressTM * 0.70)}lb, 3× @ ${Math.round(pressTM * 0.80)}lb, 3+ @ ${Math.round(pressTM * 0.90)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(pressTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    // Week 3: 5/3/1 (75%, 85%, 95%)
-    program += `WEEK 3 (5/3/1)\n`;
-    
-    program += `DAY 1 - SQUAT\n`;
-    program += `Squat: 5× @ ${Math.round(squatTM * 0.75)}lb, 3× @ ${Math.round(squatTM * 0.85)}lb, 1+ @ ${Math.round(squatTM * 0.95)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(squatTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 2 - BENCH\n`;
-    program += `Bench: 5× @ ${Math.round(benchTM * 0.75)}lb, 3× @ ${Math.round(benchTM * 0.85)}lb, 1+ @ ${Math.round(benchTM * 0.95)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(benchTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 3 - DEADLIFT\n`;
-    program += `Deadlift: 5× @ ${Math.round(deadliftTM * 0.75)}lb, 3× @ ${Math.round(deadliftTM * 0.85)}lb, 1+ @ ${Math.round(deadliftTM * 0.95)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(deadliftTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 4 - PRESS\n`;
-    program += `Press: 5× @ ${Math.round(pressTM * 0.75)}lb, 3× @ ${Math.round(pressTM * 0.85)}lb, 1+ @ ${Math.round(pressTM * 0.95)}lb\n`;
-    program += `Assistance: 5×10 @ ${Math.round(pressTM * 0.5)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    // Week 4: Deload (40%, 50%, 60%)
-    program += `WEEK 4 (DELOAD)\n`;
-    
-    program += `DAY 1 - SQUAT\n`;
-    program += `Squat: 5× @ ${Math.round(squatTM * 0.40)}lb, 5× @ ${Math.round(squatTM * 0.50)}lb, 5× @ ${Math.round(squatTM * 0.60)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 2 - BENCH\n`;
-    program += `Bench: 5× @ ${Math.round(benchTM * 0.40)}lb, 5× @ ${Math.round(benchTM * 0.50)}lb, 5× @ ${Math.round(benchTM * 0.60)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 3 - DEADLIFT\n`;
-    program += `Deadlift: 5× @ ${Math.round(deadliftTM * 0.40)}lb, 5× @ ${Math.round(deadliftTM * 0.50)}lb, 5× @ ${Math.round(deadliftTM * 0.60)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
-    
-    program += `DAY 4 - PRESS\n`;
-    program += `Press: 5× @ ${Math.round(pressTM * 0.40)}lb, 5× @ ${Math.round(pressTM * 0.50)}lb, 5× @ ${Math.round(pressTM * 0.60)}lb\n`;
-    program += `Accessories: 50-100 reps each of Push, Pull, Single Leg/Core\n\n`;
+    return program;
+  } catch (error) {
+    console.error('Error generating 5/3/1 program:', error);
+    throw error;
   }
-  
-  return program;
 };
