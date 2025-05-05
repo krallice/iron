@@ -1,6 +1,8 @@
 // Mock workout calculation service
 // This would typically make API calls to a Python backend
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.129:9000';
+
 export type Program = 'hlm' | '531';
 export type HlmType = 'standard' | 'alternate';
 
@@ -45,7 +47,7 @@ export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
   
   try {
     if (hlmType === 'standard') {
-      const response = await fetch('http://192.168.1.129:9000/api/v1/programs/hlm/standard', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/programs/hlm/standard`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +68,7 @@ export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
       const data = await response.json();
       return formatHLMResponse(data, inputs);
     } else {
-      const response = await fetch('http://192.168.1.129:9000/api/v1/programs/hlm/alternate', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/programs/hlm/alternate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +152,7 @@ const formatHLMResponse = (data: any, inputs: HlmInputs): string => {
 // Calculate 5/3/1 Program
 export const calculate531 = async (inputs: FiveThreeOneInputs): Promise<string> => {
   try {
-    const response = await fetch('http://192.168.1.129:9000/api/v1/programs/wendler531', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/programs/wendler531`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
