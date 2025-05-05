@@ -7,9 +7,9 @@ export type HlmType = 'standard' | 'alternate';
 export interface HlmInputs {
   // Common inputs
   squatMax: number;
-  benchMax: number;
+  primaryPressMax: number;
+  secondaryPressMax: number;
   deadliftMax: number;
-  pressMax: number;
   hlmType: HlmType;
   mediumReduction: number;
   lightReduction: number;
@@ -35,7 +35,7 @@ export interface FiveThreeOneInputs {
 
 // Calculate HLM Program
 export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
-  const { hlmType, squatMax, benchMax, deadliftMax, pressMax, mediumReduction, lightReduction } = inputs;
+  const { hlmType, squatMax, primaryPressMax, secondaryPressMax, deadliftMax, mediumReduction, lightReduction } = inputs;
   
   try {
     if (hlmType === 'standard') {
@@ -47,7 +47,7 @@ export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
         body: JSON.stringify({
           squat: squatMax,
           pull: deadliftMax,
-          press: pressMax,
+          press: primaryPressMax,
           medium_reduction: mediumReduction,
           light_reduction: lightReduction
         }),
@@ -68,9 +68,9 @@ export const calculateHLM = async (inputs: HlmInputs): Promise<string> => {
         body: JSON.stringify({
           heavy_squat_name: inputs.heavySquatName || "Squat",
           squat: squatMax,
-          primary_press: pressMax,
+          primary_press: primaryPressMax,
           primary_press_name: inputs.primaryPressName || "OHP",
-          secondary_press: benchMax,
+          secondary_press: secondaryPressMax,
           secondary_press_name: inputs.secondaryPressName || "Bench Press",
           pull: deadliftMax,
           heavy_pull_name: inputs.heavyPullName || "Deadlift",

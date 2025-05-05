@@ -13,14 +13,14 @@ import { Textarea } from '@/components/ui/textarea';
 
 const HLMProgram = () => {
   const [inputs, setInputs] = useState<HlmInputs>({
-    squatMax: 225,
-    benchMax: 185,
+    squatMax: 120,
+    primaryPressMax: 185,
+    secondaryPressMax: 115,
     deadliftMax: 275,
-    pressMax: 115,
-    hlmType: 'standard',
+    hlmType: 'alternate',
     heavySquatName: "Squat",
     primaryPressName: "OHP",
-    secondaryPressName: "Bench Press",
+    secondaryPressName: "Weighted Dips",
     heavyPullName: "Deadlift",
     headerText: "",
     mediumReduction: 0.10,
@@ -61,9 +61,9 @@ const HLMProgram = () => {
     // Form validation
     if (
       inputs.squatMax <= 0 || 
-      inputs.benchMax <= 0 || 
+      inputs.primaryPressMax <= 0 || 
       inputs.deadliftMax <= 0 || 
-      inputs.pressMax <= 0
+      inputs.secondaryPressMax <= 0
     ) {
       toast.error("Please enter valid values for all lifts");
       return;
@@ -106,12 +106,12 @@ const HLMProgram = () => {
               className="flex flex-col space-y-1"
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="standard" id="standard" />
-                <Label htmlFor="standard">Standard HLM</Label>
-              </div>
-              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="alternate" id="alternate" />
                 <Label htmlFor="alternate">Alternate Pressing HLM</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="standard" id="standard" />
+                <Label htmlFor="standard">Standard HLM</Label>
               </div>
             </RadioGroup>
           </CardContent>
@@ -139,12 +139,14 @@ const HLMProgram = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="benchMax">Bench Press 1RM (lb)</Label>
+                <Label htmlFor="primaryPressMax">
+                  {inputs.hlmType === 'standard' ? 'Bench Press' : 'Primary Press'} 1RM (lb)
+                </Label>
                 <Input
-                  id="benchMax"
-                  name="benchMax"
+                  id="primaryPressMax"
+                  name="primaryPressMax"
                   type="number"
-                  value={inputs.benchMax}
+                  value={inputs.primaryPressMax}
                   onChange={handleInputChange}
                   min="0"
                 />
@@ -163,12 +165,14 @@ const HLMProgram = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="pressMax">Overhead Press 1RM (lb)</Label>
+                <Label htmlFor="secondaryPressMax">
+                  {inputs.hlmType === 'standard' ? 'Overhead Press' : 'Secondary Press'} 1RM (lb)
+                </Label>
                 <Input
-                  id="pressMax"
-                  name="pressMax"
+                  id="secondaryPressMax"
+                  name="secondaryPressMax"
                   type="number"
-                  value={inputs.pressMax}
+                  value={inputs.secondaryPressMax}
                   onChange={handleInputChange}
                   min="0"
                 />
