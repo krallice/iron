@@ -10,7 +10,6 @@ export interface HlmInputs {
   benchMax: number;
   deadliftMax: number;
   pressMax: number;
-  weeks: number;
   hlmType: HlmType;
   mediumReduction: number;
   lightReduction: number;

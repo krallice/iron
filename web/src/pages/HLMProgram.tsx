@@ -17,7 +17,6 @@ const HLMProgram = () => {
     benchMax: 185,
     deadliftMax: 275,
     pressMax: 115,
-    weeks: 4,
     hlmType: 'standard',
     heavySquatName: "Squat",
     primaryPressName: "OHP",
@@ -235,18 +234,6 @@ const HLMProgram = () => {
             )}
             
             <div className="space-y-4 pt-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <Label>Program Length (weeks): {inputs.weeks}</Label>
-                </div>
-                <Slider
-                  value={[inputs.weeks]}
-                  min={1}
-                  max={12}
-                  step={1}
-                  onValueChange={handleWeeksChange}
-                />
-              </div>
 
               <div>
                 <div className="flex justify-between mb-2">
