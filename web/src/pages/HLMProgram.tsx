@@ -30,15 +30,18 @@ const HLMProgram = () => {
   const [workoutProgram, setWorkoutProgram] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const numValue = parseInt(value);
     
     if (!isNaN(numValue) && numValue >= 0) {
       setInputs(prev => ({ ...prev, [name]: numValue }));
-    } else {
-      setInputs(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setInputs(prev => ({ ...prev, [name]: value }));
   };
   
   const handleWeeksChange = (value: number[]) => {
@@ -188,7 +191,7 @@ const HLMProgram = () => {
                       id="heavySquatName"
                       name="heavySquatName"
                       value={inputs.heavySquatName}
-                      onChange={handleInputChange}
+                      onChange={handleTextInputChange}
                     />
                   </div>
                   
@@ -198,7 +201,7 @@ const HLMProgram = () => {
                       id="primaryPressName"
                       name="primaryPressName"
                       value={inputs.primaryPressName}
-                      onChange={handleInputChange}
+                      onChange={handleTextInputChange}
                     />
                   </div>
                   
@@ -208,7 +211,7 @@ const HLMProgram = () => {
                       id="secondaryPressName"
                       name="secondaryPressName"
                       value={inputs.secondaryPressName}
-                      onChange={handleInputChange}
+                      onChange={handleTextInputChange}
                     />
                   </div>
                   
@@ -218,7 +221,7 @@ const HLMProgram = () => {
                       id="heavyPullName"
                       name="heavyPullName"
                       value={inputs.heavyPullName}
-                      onChange={handleInputChange}
+                      onChange={handleTextInputChange}
                     />
                   </div>
                 </div>
@@ -229,7 +232,7 @@ const HLMProgram = () => {
                     id="headerText"
                     name="headerText"
                     value={inputs.headerText}
-                    onChange={handleInputChange}
+                    onChange={handleTextInputChange}
                     placeholder={`2x6 Double Rope Chins
 2x10 Chins`}
                     className="min-h-[100px] font-mono"
